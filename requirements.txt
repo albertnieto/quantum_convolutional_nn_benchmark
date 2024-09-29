@@ -1,0 +1,6 @@
+numpy==1.25.2
+PennyLane==0.38.0
+pytest==8.3.3
+qcml==0.1.2.2
+torch==2.4.1
+torchvision==0.19.1
