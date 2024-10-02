@@ -32,7 +32,4 @@ def no_entanglement_random_circuit(wires, params):
         if rand_num == 0:
             qml.Identity(wires=wire)
         else:
-            if weights is None:
-                qml.RZ(rnd()*pi, wires=wire)
-            else:
-                qml.RZ(weights[wire].item(), wires=wire)
+            qml.RZ(weights[wire].item(), wires=wire)
