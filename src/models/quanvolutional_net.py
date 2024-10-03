@@ -17,7 +17,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from src.layers.quanvolution import QuanvLayer
+import sys
+import os
+
+src_path = os.path.abspath(os.path.join('..', 'src'))
+if src_path not in sys.path:
+    sys.path.append(src_path)
+
+from layers.quanvolution import QuanvLayer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
