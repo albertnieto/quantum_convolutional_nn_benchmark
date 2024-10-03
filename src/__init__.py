@@ -11,23 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import torch
-import pennylane as qml
-from pennylane import numpy as np
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-def no_entanglement_random_circuit(wires, params):
-    n_qubits = len(wires)
-    weights = params.get("weights")
-
-    if weights is None:
-        weights = torch.rand(n_qubits, device = device)%np.pi
-
-    for wire in range(n_qubits):
-        rand_num = np.random.choice([0, 1])
-        if rand_num == 0:
-            qml.Identity(wires=wire)
-        else:
-            qml.RZ(weights[wire].item(), wires=wire)

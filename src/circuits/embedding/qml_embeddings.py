@@ -14,7 +14,7 @@
 
 import torch
 import pennylane as qml
-import numpy.pi as pi
+from pennylane import numpy as np
 
 def amplitude_embedding(inputs, wires, params):
     qml.AmplitudeEmbedding(inputs, wires = wires, pad_with = 0.0, normalize = True, id = None)
@@ -29,7 +29,7 @@ def QAOA_embedding(inputs, wires, params): #PROVISIONAL
         n = 8
     elif qkernel_shape == 3:
         n = 18
-    qml.QAOAEmbedding(inputs, torch.rand(2,n)*pi, wires = wires)
+    qml.QAOAEmbedding(inputs, torch.rand(2,n)*np.pi, wires = wires)
 
 def displacement_embedding(inputs, wires, params):
     method = params.get('method')

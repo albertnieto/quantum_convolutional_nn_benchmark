@@ -14,12 +14,15 @@
 
 import torch
 import pennylane as qml
-import numpy.pi as pi
+from pennylane import numpy as np
 
 def NQE_embedding(inputs, wires, params):
 
     n_qubits = len(wires)
     n_repeats = params.get('n_repeats')
+
+    if n_repeats is None:
+        n_repeats = 1
 
     for _ in range(n_repeats):
 
@@ -34,7 +37,7 @@ def NQE_embedding(inputs, wires, params):
             for j in range(cont):
                 wire1 = wires[a]
                 wire2 = wires[j + 1 + a]
-                phi = (pi - inputs[:, a]) * (pi - inputs[:, j + a + 1])
+                phi = (np.pi - inputs[:, a]) * (np.pi - inputs[:, j + a + 1])
 
                 qml.CNOT(wires = [wire1, wire2])
                 qml.RZ(phi, wires = wire2)

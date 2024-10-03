@@ -14,7 +14,7 @@
 
 import torch
 import pennylane as qml
-import numpy as np
+from pennylane import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -22,10 +22,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def NQ_circuit(wires, params):
     
     n_qubits = len(wires)
-    weights = params.get('weights')
-
-    if weights is None:
-        weights = torch.randn(3*n_qubits,  2, device=device)
+    weights = torch.randn(3*n_qubits,  2, device=device) % np.pi
 
     
     for wire in range(n_qubits-1):
@@ -51,5 +48,5 @@ def NQ_circuit(wires, params):
     qml.Barrier()
 
     for wire in range(n_qubits-1):
-        qml.RY(weights[wires + 8, 0], wires = wire)
-        qml.RZ(weights[wires + 8, 1], wires = wire)
+        qml.RY(weights[wire + 8, 0], wires = wire)
+        qml.RZ(weights[wire + 8, 1], wires = wire)
