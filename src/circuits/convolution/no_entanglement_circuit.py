@@ -23,7 +23,7 @@ def no_entanglement_random_circuit(wires, params):
     weights = params.get("weights")
 
     if weights is None:
-        weights = torch.rand(n_qubits, device = device)%np.pi
+        weights = torch.rand(n_qubits, device = device) % np.pi
 
     for wire in range(n_qubits):
         rand_num = np.random.choice([0, 1])
