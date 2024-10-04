@@ -23,9 +23,9 @@ src_path = os.path.abspath(os.path.join('..', 'src'))
 if src_path not in sys.path:
     sys.path.append(src_path)
 
-from circuits.convolution import default_circuit
-from circuits.embedding import default_embedding
-from circuits.measurement import default_measurement
+from circuits.convolution.default import default_circuit
+from circuits.embedding.default import default_embedding
+from circuits.measurement.default import default_measurement
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

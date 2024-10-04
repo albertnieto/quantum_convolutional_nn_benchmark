@@ -13,6 +13,6 @@
 # limitations under the License.
  
 
-from .default import custom_circuit, default_circuit
+from .default import full_entanglement_circuit, default_circuit
 
-__all__ = ['custom_circuit', 'default_circuit']
+__all__ = ['full_entanglement_circuit', 'default_circuit']

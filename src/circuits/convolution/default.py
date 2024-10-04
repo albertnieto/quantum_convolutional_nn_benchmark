@@ -24,6 +24,6 @@ def default_circuit(wires, params):
         weights = torch.randn(num_layers, len(wires), device=device)
     qml.templates.RandomLayers(weights, wires=wires)
 
-def full_entanglement(wires, params):
+def full_entanglement_circuit(wires, params):
     weights = params.get('weights')
     qml.templates.StronglyEntanglingLayers(weights, wires=wires)
