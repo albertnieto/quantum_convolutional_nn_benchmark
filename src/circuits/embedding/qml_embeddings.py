@@ -23,7 +23,7 @@ def angle_embedding(inputs, wires, params):
     qml.AngleEmbedding(inputs, wires = wires)
 
 def QAOA_embedding(inputs, wires, params): #PROVISIONAL
-    qkernel_shape = params.get('qkernel_shape')
+    qkernel_shape = params.get('qkernel_shape', 2)
 
     if qkernel_shape == 2:
         n = 8
@@ -32,9 +32,9 @@ def QAOA_embedding(inputs, wires, params): #PROVISIONAL
     qml.QAOAEmbedding(inputs, torch.rand(2,n)*np.pi, wires = wires)
 
 def displacement_embedding(inputs, wires, params):
-    method = params.get('method')
+    method = params.get('method', 'amplitude')
     qml.DisplacementEmbedding(inputs, wires = wires, method = method)
 
 def squeezing_embedding(inputs, wires, params):
-    method = params.get('method')
+    method = params.get('method', 'amplitude')
     qml.SqueezingEmbedding(inputs, wires = wires, method = method)

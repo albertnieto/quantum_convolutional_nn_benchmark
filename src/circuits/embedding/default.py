@@ -16,9 +16,10 @@ import torch
 import pennylane as qml
 
 def default_embedding(inputs, wires, params):
-    rotation = params.get('rotation', 'X')
+    rotation = params.get('rotation', 'Z')
     qml.AngleEmbedding(inputs, wires=wires, rotation=rotation)
 
 def custom_embedding(inputs, wires, params):
-    # Example custom embedding
-    qml.AmplitudeEmbedding(inputs, wires=wires, normalize=True, pad_with=0.0)
+    normalize = params.get('normalize', True)
+    pad_with = params.get('pad_with', 0.0)
+    qml.AmplitudeEmbedding(inputs, wires=wires, normalize=normalize, pad_with=pad_with)

@@ -20,10 +20,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def no_entanglement_random_circuit(wires, params):
     n_qubits = len(wires)
-    weights = params.get("weights")
-
-    if weights is None:
-        weights = torch.rand(n_qubits, device = device) % np.pi
+    weights = params.get("weights", torch.rand(n_qubits, device = device) % np.pi)
 
     for wire in range(n_qubits):
         rand_num = np.random.choice([0, 1])

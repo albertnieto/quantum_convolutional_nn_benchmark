@@ -17,7 +17,7 @@ import pennylane as qml
 
 def custom_iqp_embedding(inputs, wires, params):
     n_qubits = len(wires)
-    n_repeats = params.get("n_repeats")
+    n_repeats = params.get("n_repeats", 1)
     pattern = params.get("pattern")
 
 
@@ -47,10 +47,7 @@ def custom_iqp_embedding(inputs, wires, params):
                 a += 1
                 
         else:
-            # Custom pattern
+            a = 0
+            # Custom pattern PROVISIONAL
             for pair in pattern:
-                wire1 = wires[pair[0]]
-                wire2 = wires[pair[1]]
-                phi = inputs[:, pair[0]] * inputs[:, pair[1]]
-                qml.ZZ(phi, wires=[wire1, wire2])
-                #qml.RZ(np.random.rand()*np.pi, wires=wire2)
+                a += 1

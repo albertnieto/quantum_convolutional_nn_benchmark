@@ -19,10 +19,7 @@ from pennylane import numpy as np
 def NQE_embedding(inputs, wires, params):
 
     n_qubits = len(wires)
-    n_repeats = params.get('n_repeats')
-
-    if n_repeats is None:
-        n_repeats = 1
+    n_repeats = params.get('n_repeats', 1)
 
     for _ in range(n_repeats):
 

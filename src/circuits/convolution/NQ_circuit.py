@@ -22,7 +22,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 def NQ_circuit(wires, params):
     
     n_qubits = len(wires)
-    weights = torch.randn(3*n_qubits,  2, device=device) % np.pi
+    weights = params.get('weights', torch.randn(3*n_qubits,  2, device=device) % np.pi)
 
     
     for wire in range(n_qubits-1):
