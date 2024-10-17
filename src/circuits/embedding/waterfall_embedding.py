@@ -11,8 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
 
-from .default import custom_circuit, default_circuit
+import torch
+import pennylane as qml
+from pennylane import numpy as np
 
-__all__ = ['custom_circuit', 'default_circuit']
+def waterfall_embedding(inputs, wires, params):
+    n_qubits = len(wires)
+
+    for idx, wire in enumerate(wires):
+        qml.Hadamard(wires = wire)
+        qml.RY(inputs[:, idx], wires = wire)
+        # Aplicar las puertas CNOT en cascada
+    for control in range(n_qubits):
+        for target in range(control + 1, n_qubits):
+            qml.CNOT(wires=[control, target])
+
+    qml.Barrier()
+    for idx, wire in enumerate(wires):
+        qml.RZ(inputs[:, idx], wires = wire)

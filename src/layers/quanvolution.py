@@ -19,10 +19,10 @@ import pennylane as qml
 import sys
 import os
 
-src_path = os.path.abspath(os.path.join('..', 'src'))
-if src_path not in sys.path:
-    sys.path.append(src_path)
 
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
 from circuits.convolution.default import default_circuit
 from circuits.embedding.default import default_embedding
 from circuits.measurement.default import default_measurement

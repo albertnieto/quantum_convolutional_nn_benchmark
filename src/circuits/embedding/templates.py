@@ -28,7 +28,7 @@ def angle_embedding(inputs, wires, params):
     """
     An embedding using the AngleEmbedding template from PennyLane.
     """
-    rotation = params.get('rotation', 'X')
+    rotation = params.get('rotation', 'Z')
     qml.AngleEmbedding(inputs, wires = wires, rotation=rotation)
 
 def QAOA_embedding(inputs, wires, params):

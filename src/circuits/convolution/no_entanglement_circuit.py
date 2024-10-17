@@ -19,10 +19,9 @@ from pennylane import numpy as np
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def no_entanglement_random_circuit(wires, params):
-    n_qubits = len(wires)
-    weights = params.get("weights", torch.rand(n_qubits, device = device) % np.pi)
+    weights = params.get("weights", torch.rand(len(wires), device = device) % np.pi)
 
-    for wire in range(n_qubits):
+    for wire in range(len(wires)):
         rand_num = np.random.choice([0, 1])
         if rand_num == 0:
             qml.Identity(wires=wire)
