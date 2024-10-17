@@ -16,14 +16,17 @@ import torch
 import pennylane as qml
 from pennylane import numpy as np
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def waterfall_embedding(inputs, wires, params):
+    n_qubits = len(wires)
 
-def default_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), device=device))
-    qml.templates.RandomLayers(weights, wires=wires)
+    for idx, wire in enumerate(wires):
+        qml.Hadamard(wires = wire)
+        qml.RY(inputs[:, idx], wires = wire)
+        # Aplicar las puertas CNOT en cascada
+    for control in range(n_qubits):
+        for target in range(control + 1, n_qubits):
+            qml.CNOT(wires=[control, target])
 
-def custom_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), 3, device=device) % np.pi)
-    qml.templates.StronglyEntanglingLayers(weights, wires=wires)
+    qml.Barrier()
+    for idx, wire in enumerate(wires):
+        qml.RZ(inputs[:, idx], wires = wire)

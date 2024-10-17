@@ -18,12 +18,12 @@ from pennylane import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def default_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), device=device))
-    qml.templates.RandomLayers(weights, wires=wires)
+def no_entanglement_random_circuit(wires, params):
+    weights = params.get("weights", torch.rand(len(wires), device = device) % np.pi)
 
-def custom_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), 3, device=device) % np.pi)
-    qml.templates.StronglyEntanglingLayers(weights, wires=wires)
+    for wire in range(len(wires)):
+        rand_num = np.random.choice([0, 1])
+        if rand_num == 0:
+            qml.Identity(wires=wire)
+        else:
+            qml.RZ(weights[wire].item(), wires=wire)

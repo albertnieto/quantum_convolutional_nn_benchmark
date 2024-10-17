@@ -1,5 +1,3 @@
-# Copyright 2024 CTIC (Technological Center for Information and Communication).
-
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,12 +16,14 @@ from pennylane import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def default_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), device=device))
-    qml.templates.RandomLayers(weights, wires=wires)
+def default_activation(wires, params):
+    weights = params.get("weights", torch.rand(len(wires), device = device) % np.pi)
+    qml.Hadamard(wires = wires)
+    for i in range(len(wires)):
+        qml.RY(weights[i], wires = i)
 
-def custom_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), 3, device=device) % np.pi)
-    qml.templates.StronglyEntanglingLayers(weights, wires=wires)
+
+def custom_activation(inputs, wires, params):
+    normalize = params.get('normalize', True)
+    pad_with = params.get('pad_with', 0.0)
+    qml.AmplitudeEmbedding(inputs, wires=wires, normalize=normalize, pad_with=pad_with)

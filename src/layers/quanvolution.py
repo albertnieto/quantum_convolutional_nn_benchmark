@@ -15,9 +15,17 @@
 import torch
 import torch.nn as nn
 import pennylane as qml
-from src.circuits.convolution import default_circuit
-from src.circuits.embedding import default_embedding
-from src.circuits.measurement import default_measurement
+
+import sys
+import os
+
+
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+from circuits.convolution.default import default_circuit
+from circuits.embedding.default import default_embedding
+from circuits.measurement.default import default_measurement
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

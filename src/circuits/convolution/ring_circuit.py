@@ -18,12 +18,16 @@ from pennylane import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-def default_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), device=device))
-    qml.templates.RandomLayers(weights, wires=wires)
+def ring_circuit(wires, params):
+    n_qubits = len(wires)
+    weights = params.get("weights", torch.randn(3*n_qubits,  2, device=device))
 
-def custom_circuit(wires, params):
-    num_layers = params.get('num_layers', 1)
-    weights = params.get('weights', torch.randn(num_layers, len(wires), 3, device=device) % np.pi)
-    qml.templates.StronglyEntanglingLayers(weights, wires=wires)
+    for wire in wires:
+        qml.RY(weights[wire, 0], wires = wire)
+        qml.RZ(weights[wire, 1], wires = wire)
+
+    for i in range(n_qubits):
+        if i != n_qubits-1:
+            qml.CZ(wires = [i, i + 1])
+        else:
+            qml.CZ(wires = [i, 0])
