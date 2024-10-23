@@ -17,14 +17,21 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
-from src.layers.quanvolution import QuanvLayer
+import sys
+import os
+
+src_path = os.path.abspath(os.path.join('..', 'src'))
+if src_path not in sys.path:
+    sys.path.append(src_path)
+
+from layers.quanvolution import QuanvLayer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class QuanvolutionalNet(nn.Module):
     def __init__(self, qkernel_shape=2, classical_kernel_shape=3, embedding=None,
                  circuit=None, measurement=None, params=None, qdevice_kwargs=None,
-                 n_classes=10, batch_size=32, epochs=10):
+                 n_classes=10, batch_size=32, epochs=10, learning_rate=None):
         super(QuanvolutionalNet, self).__init__()
         self.qkernel_shape = qkernel_shape
         self.device = device
@@ -35,6 +42,7 @@ class QuanvolutionalNet(nn.Module):
         self.measurement = measurement
         self.batch_size = batch_size
         self.epochs = epochs
+        self.learning_rate = learning_rate
 
         self.quanv = QuanvLayer(
             qkernel_shape=qkernel_shape,
@@ -90,7 +98,7 @@ class QuanvolutionalNet(nn.Module):
             train_loader = DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
 
         if optimizer is None:
-            optimizer = optim.Adam(self.parameters(), lr=0.001)
+            optimizer = optim.Adam(self.parameters(), lr=self.learning_rate)
 
         self.train()
         self.to(self.device)
