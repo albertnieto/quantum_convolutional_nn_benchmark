@@ -19,13 +19,9 @@ import pennylane as qml
 import sys
 import os
 
-
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.dirname(SCRIPT_DIR))
-from circuits.convolution.default import default_circuit
-from circuits.embedding.default import default_embedding
-from circuits.measurement.default import default_measurement
+from src.circuits.convolution import default_circuit
+from src.circuits.embedding import default_embedding
+from src.circuits.measurement import default_measurement
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -78,7 +74,10 @@ class QuanvLayer(nn.Module):
 
         # Process patches
         outputs = self.qnode(patches)
-        outputs = torch.stack(outputs, dim=1)
+
+        # Remove the torch.stack line
+        # outputs = torch.stack(outputs, dim=1)
+
         outputs = outputs.float()
 
         # Reshape outputs

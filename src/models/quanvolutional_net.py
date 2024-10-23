@@ -19,19 +19,14 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import sys
 import os
-
-src_path = os.path.abspath(os.path.join('..', 'src'))
-if src_path not in sys.path:
-    sys.path.append(src_path)
-
-from layers.quanvolution import QuanvLayer
+from src.layers.quanvolution import QuanvLayer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 class QuanvolutionalNet(nn.Module):
     def __init__(self, qkernel_shape=2, classical_kernel_shape=3, embedding=None,
                  circuit=None, measurement=None, params=None, qdevice_kwargs=None,
-                 n_classes=10, batch_size=32, epochs=10, learning_rate=None):
+                 n_classes=10, batch_size=32, epochs=10, learning_rate=1e-3):
         super(QuanvolutionalNet, self).__init__()
         self.qkernel_shape = qkernel_shape
         self.device = device
