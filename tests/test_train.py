@@ -15,9 +15,9 @@
 import pytest
 import torch
 import numpy as np
-from src.scripts.train import load_data, initialize_model, train_model, evaluate_model, main
+from src.scripts.train import load_data, initialize_model, train_model, evaluate_model, main, plot_training_metrics
 from torch.utils.data import DataLoader
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import io
 import subprocess
 import sys
@@ -119,6 +119,10 @@ def test_main(mock_stdout):
 def test_script_execution():
     # Get the script path
     script_path = os.path.join(os.path.dirname(__file__), '..', 'src', 'scripts', 'train.py')
+    
+    # Ensure the script exists
+    assert os.path.isfile(script_path), f"Script not found at {script_path}"
+    
     # Set the PYTHONPATH environment variable to include the root of the project
     env = os.environ.copy()
     env['PYTHONPATH'] = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
@@ -133,7 +137,66 @@ def test_script_execution():
     )
 
     # Check that the script executed successfully
-    assert result.returncode == 0
+    assert result.returncode == 0, f"Script failed with return code {result.returncode}. Stderr: {result.stderr}"
 
     # Verify that the output contains the accuracy statement
     assert "Test Accuracy:" in result.stdout
+
+def test_training_metrics_saved(mock_model, mock_data_np):
+    """
+    Test to ensure that training losses and accuracies are saved after training.
+    """
+    X_train, y_train, _, _ = mock_data_np
+    model = mock_model
+
+    # Run training for testing purposes
+    train_model(model, X_train, y_train, epochs=3, batch_size=8)
+
+    # Check that train_losses and train_accuracies are populated
+    assert len(model.train_losses) == 3, "train_losses should have 3 entries corresponding to 3 epochs."
+    assert len(model.train_accuracies) == 3, "train_accuracies should have 3 entries corresponding to 3 epochs."
+
+    # Ensure that the losses and accuracies are floats
+    for loss in model.train_losses:
+        assert isinstance(loss, float), "Each loss should be a float."
+        assert loss >= 0, "Loss should be non-negative."
+
+    for acc in model.train_accuracies:
+        assert isinstance(acc, float), "Each accuracy should be a float."
+        assert 0.0 <= acc <= 1.0, "Accuracy should be between 0 and 1."
+
+@patch('matplotlib.pyplot.show')
+@patch('matplotlib.pyplot.savefig')
+def test_plot_training_metrics(mock_savefig, mock_show, mock_model, mock_data_np):
+    """
+    Test to ensure that the plot_training_metrics function executes without errors
+    and calls the appropriate matplotlib functions.
+    """
+    X_train, y_train, _, _ = mock_data_np
+    model = mock_model
+
+    # Run training to populate train_losses and train_accuracies
+    train_model(model, X_train, y_train, epochs=2, batch_size=8)
+
+    # Attempt to plot without saving (should call plt.show())
+    plot_training_metrics(model)
+
+    # Check that plt.show() was called
+    mock_show.assert_called_once()
+    mock_savefig.assert_not_called()
+
+    # Reset mocks
+    mock_show.reset_mock()
+    mock_savefig.reset_mock()
+
+    # Attempt to plot and save to a file (should call plt.savefig())
+    save_path = 'test_plot.png'
+    plot_training_metrics(model, save_path=save_path)
+
+    # Check that plt.savefig() was called with the correct path
+    mock_savefig.assert_called_once_with(save_path)
+    mock_show.assert_not_called()
+
+    # Clean up the created plot file if it was actually created
+    if os.path.exists(save_path):
+        os.remove(save_path)
