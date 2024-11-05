@@ -15,6 +15,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import matplotlib.pyplot as plt
 from src.models.quanvolutional_net import QuanvolutionalNet
 from src.utils.data_loader import load_mnist_data
 from src.circuits.convolution import custom_circuit
@@ -47,14 +48,9 @@ def initialize_model(qkernel_shape, classical_kernel_shape, n_classes, num_layer
     return model
 
 def train_model(model, X_train, y_train, epochs=10, batch_size=32):
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-
     model.fit(
         X_train=torch.tensor(X_train, dtype=torch.float32),
         y_train=torch.tensor(y_train, dtype=torch.long),
-        criterion=criterion,
-        optimizer=optimizer,
         epochs=epochs,
         batch_size=batch_size
     )
@@ -64,7 +60,45 @@ def evaluate_model(model, X_test, y_test):
     accuracy = (predictions == torch.tensor(y_test)).float().mean()
     return accuracy.item()
 
-def main(batch_size=4, limit=250, epochs=10, batch_size_train=32, suppress_print=False):
+def plot_training_metrics(model, save_path=None):
+    """
+    Plots the training loss and accuracy over epochs.
+
+    Args:
+        model (QuanvolutionalNet): The trained model with recorded metrics.
+        save_path (str, optional): Path to save the plot. If None, the plot is displayed.
+    """
+    if not model.train_losses or not model.train_accuracies:
+        raise ValueError("No training metrics to plot. Ensure that the model has been trained.")
+
+    epochs = range(1, len(model.train_losses) + 1)
+
+    fig, ax1 = plt.subplots(figsize=(10, 5))
+
+    color = 'tab:blue'
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss', color=color)
+    ax1.plot(epochs, model.train_losses, color=color, label='Loss')
+    ax1.tick_params(axis='y', labelcolor=color)
+    ax1.legend(loc='upper left')
+
+    ax2 = ax1.twinx()  # Instantiate a second axes that shares the same x-axis
+
+    color = 'tab:orange'
+    ax2.set_ylabel('Accuracy', color=color)  # We already handled the x-label with ax1
+    ax2.plot(epochs, model.train_accuracies, color=color, label='Accuracy')
+    ax2.tick_params(axis='y', labelcolor=color)
+    ax2.legend(loc='upper right')
+
+    fig.tight_layout()  # Otherwise the right y-label is slightly clipped
+
+    if save_path:
+        plt.savefig(save_path)
+        plt.close()
+    else:
+        plt.show()
+
+def main(batch_size=4, limit=250, epochs=10, batch_size_train=32, suppress_print=False, plot=False, save_plot_path=None):
     # Load data
     X_train, y_train, X_test, y_test = load_data(batch_size=batch_size, output='np', limit=limit)
 
@@ -84,7 +118,11 @@ def main(batch_size=4, limit=250, epochs=10, batch_size_train=32, suppress_print
 
     if not suppress_print:
         print(f"Test Accuracy: {accuracy * 100:.2f}%")
-    
+
+    # Plot training metrics if requested
+    if plot:
+        plot_training_metrics(model, save_path=save_plot_path)
+
     return accuracy
 
 
