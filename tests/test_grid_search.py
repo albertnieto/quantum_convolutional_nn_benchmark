@@ -21,7 +21,6 @@ from src.circuits.measurement import custom_measurement
 
 import numpy as np 
 
-# Assuming 'qcml' is installed and accessible
 try:
     from qcml.bench.grid_search import GridSearch
     from qcml.utils.log import log_setup
@@ -81,8 +80,8 @@ def test_qcml_grid_search():
     # Setup logging if necessary
     log_settings = {
         "output": "both",
-        "terminal_level": "INFO",
-        "file_level": "DEBUG",
+        "terminal_level": "ERROR",
+        "file_level": "ERROR",
         "hide_logs": ["jax", "pennylane", "bokeh", "distributed"],
         "slack_notify": False,
         "slack_credentials": ["YOUR_SLACK_TOKEN", "#qcml"],
