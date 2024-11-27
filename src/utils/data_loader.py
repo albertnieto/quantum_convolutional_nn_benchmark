@@ -16,8 +16,23 @@ import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Subset, TensorDataset
 import numpy as np
+import random
 
 def load_mnist_data(batch_size=4, img_size=8, limit=None, output="dl"):
+    """
+    Load the MNIST dataset and return the data in DataLoader or NumPy format.
+    
+    Args:
+        batch_size (int): Batch size.
+        img_size (int): Image size (img_size x img_size).
+        limit (int or None): Number of samples to load. If None, loads the entire dataset.
+        output (str): Output format, "dl" for DataLoader or "np" for NumPy.
+    
+    Returns:
+        train_loader, test_loader (DataLoader): If output="dl".
+        X_train, y_train, X_val, y_val (NumPy): If output="np".
+    """
+
     transform = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
@@ -58,5 +73,69 @@ def load_mnist_data(batch_size=4, img_size=8, limit=None, output="dl"):
         y_test = np.concatenate(y_test)
 
         return X_train, y_train, X_test, y_test
+    else:
+        raise ValueError(f"Unsupported format: {output}. Use 'dl' or 'np'.")
+
+
+def load_eurosat_data(batch_size=4, img_size=8, limit=None, output="dl"):
+    """
+    Load the EuroSAT dataset and return the data in DataLoader or NumPy format.
+    
+    Args:
+        batch_size (int): Batch size.
+        img_size (int): Image size (img_size x img_size).
+        limit (int or None): Number of samples to load. If None, loads the entire dataset.
+        output (str): Output format, "dl" for DataLoader or "np" for NumPy.
+    
+    Returns:
+        train_loader, test_loader (DataLoader): If output="dl".
+        X_train, y_train, X_val, y_val (NumPy): If output="np".
+    """
+
+    transform = transforms.Compose([
+        transforms.Resize((img_size, img_size)),  # Redimension
+        transforms.ToTensor(),                  # Convert to tensor
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalize (RGB)
+    ])
+
+    # Load full dataset
+    dataset = datasets.EuroSAT(root='./data', download=True, transform=transform)
+
+    # Shuffle indices
+    indices = list(range(len(dataset)))  # Crear una lista de índices
+    random.shuffle(indices)  # Mezclar los índices
+    
+    if limit is not None:
+        indices = indices[:limit] 
+        dataset = Subset(dataset, indices)
+    
+    # Train and val (80%-20%)
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+    
+    # DataLoaders
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+    if output == "dl":
+        return train_loader, val_loader
+    elif output == "np":
+        X_train, y_train = [], []
+        for inputs, labels in train_loader:
+            X_train.append(inputs.numpy())
+            y_train.append(labels.numpy())
+
+        X_val, y_val = [], []
+        for inputs, labels in val_loader:
+            X_val.append(inputs.numpy())
+            y_val.append(labels.numpy())
+
+        X_train = np.concatenate(X_train)
+        y_train = np.concatenate(y_train)
+        X_val = np.concatenate(X_val)
+        y_val = np.concatenate(y_val)
+
+        return X_train, y_train, X_val, y_val
     else:
         raise ValueError(f"Unsupported format: {output}. Use 'dl' or 'np'.")
