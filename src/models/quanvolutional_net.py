@@ -17,11 +17,16 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
+from sklearn.metrics import confusion_matrix
 import sys
 import os
+
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # Subir un nivel
+if src_path not in sys.path:
+    sys.path.append(src_path)
+
 from layers.quanvolution import QuanvLayer
 from utils.plot_cm import confusion_matrix_plot
-from sklearn.metrics import confusion_matrix
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -29,7 +34,7 @@ class QuanvolutionalNet(nn.Module):
     def __init__(self, qkernel_shape=2, classical_kernel_shape=3, embedding=None,
                  circuit=None, measurement=None, params=None, qdevice_kwargs=None,
                  n_classes=10, batch_size=32, epochs=10, learning_rate=1e-3,
-                 criterion=nn.CrossEntropyLoss(), optimizer_class=optim.Adam, use_quantum=True, plot=True, data=None, optimizer_kwargs=None):
+                 criterion=nn.CrossEntropyLoss(), optimizer_class=optim.Adam, use_quantum=True, plot=True, data='MNIST', optimizer_kwargs=None):
         super(QuanvolutionalNet, self).__init__()
         self.qkernel_shape = qkernel_shape
         self.device = device
