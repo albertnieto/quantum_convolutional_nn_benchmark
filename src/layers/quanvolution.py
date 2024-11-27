@@ -19,6 +19,10 @@ import pennylane as qml
 import sys
 import os
 
+src_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # Subir un nivel
+if src_path not in sys.path:
+    sys.path.append(src_path)
+    
 from circuits.convolution import default_circuit
 from circuits.embedding import default_embedding
 from circuits.measurement import default_measurement
