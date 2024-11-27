@@ -19,7 +19,9 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import sys
 import os
-from src.layers.quanvolution import QuanvLayer
+from layers.quanvolution import QuanvLayer
+from utils.plot_cm import confusion_matrix_plot
+from sklearn.metrics import confusion_matrix
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -27,7 +29,7 @@ class QuanvolutionalNet(nn.Module):
     def __init__(self, qkernel_shape=2, classical_kernel_shape=3, embedding=None,
                  circuit=None, measurement=None, params=None, qdevice_kwargs=None,
                  n_classes=10, batch_size=32, epochs=10, learning_rate=1e-3,
-                 criterion=nn.CrossEntropyLoss(), optimizer_class=optim.Adam, optimizer_kwargs=None):
+                 criterion=nn.CrossEntropyLoss(), optimizer_class=optim.Adam, use_quantum=True, plot=True, data=None, optimizer_kwargs=None):
         super(QuanvolutionalNet, self).__init__()
         self.qkernel_shape = qkernel_shape
         self.device = device
@@ -39,19 +41,57 @@ class QuanvolutionalNet(nn.Module):
         self.batch_size = batch_size
         self.epochs = epochs
         self.learning_rate = learning_rate
+        self.use_quantum = use_quantum
+        self.confusion_matrix = None
+        self.plot = plot
+        self.data = data
 
-        self.quanv = QuanvLayer(
-            qkernel_shape=qkernel_shape,
-            embedding=embedding,
-            circuit=circuit,
-            measurement=measurement,
-            params=self.params,
-            qdevice_kwargs=self.qdevice_kwargs
-        ).to(self.device)
-        in_channels = self.qkernel_shape ** 2
+        if data == 'MNIST':
+            labels = ['0', '1','2','3', '4','5', '6','7', '8','9']
+            
+        elif data == 'Eurosat':
+            labels = ['Annual\nCrop', 'Forest',
+                  'Herbaceous\nVegetation',
+                  'Highway', 'Industrial',
+                  'Pasture', 'Permanent\nCrop',
+                  'Residential', 'River',
+                  'SeaLake']
+            
+        allowed_class_idx = None
+        self.labels = labels if allowed_class_idx is None else [labels[i] for i in allowed_class_idx if i < len(labels)]
 
-        self.conv1 = nn.Conv2d(in_channels, 16, kernel_size=classical_kernel_shape).to(self.device)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=2, padding=1).to(self.device)
+        if use_quantum:
+            self.quanv = QuanvLayer(
+                qkernel_shape=qkernel_shape,
+                embedding=embedding,
+                circuit=circuit,
+                measurement=measurement,
+                params=self.params,
+                qdevice_kwargs=self.qdevice_kwargs
+            ).to(self.device)
+            
+            if data == 'MNIST':
+                in_channels = (qkernel_shape**2)
+                
+            elif data == 'Eurosat':
+                in_channels = 3*(qkernel_shape**2)
+            
+            kernel_size = 7 if qkernel_shape==2 else 6
+            kernel_size2 = 2 
+                
+        else:
+            if data == 'MNIST':
+                kernel_size2 = 2
+                self.conv1_classical = nn.Conv2d(1, qkernel_shape**5, kernel_size=8).to(self.device)
+            elif data == 'Eurosat':
+                kernel_size2 = 1
+                self.conv1_classical = nn.Conv2d(3, qkernel_shape**5, kernel_size=8).to(self.device)
+            in_channels = qkernel_shape**5
+            kernel_size = 1   
+
+        
+        self.conv1 = nn.Conv2d(in_channels, 32, kernel_size=kernel_size).to(self.device)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=kernel_size2, padding=1).to(self.device)
         self.fc1 = None
         self.fc2 = nn.Linear(128, n_classes).to(self.device)
 
@@ -66,7 +106,10 @@ class QuanvolutionalNet(nn.Module):
 
     def forward(self, x):
         x = x.to(self.device)
-        x = self.quanv(x)
+        if self.use_quantum:
+            x = self.quanv(x)
+        else:
+            x = self.conv1_classical(x)
         x = self.conv1(x)
         x = torch.relu(x)
         x = self.conv2(x)
@@ -103,6 +146,8 @@ class QuanvolutionalNet(nn.Module):
 
         self.train_losses = []
         self.train_accuracies = []
+        all_labels = []
+        all_preds = []
 
         self.train()
         self.to(self.device)
@@ -127,12 +172,20 @@ class QuanvolutionalNet(nn.Module):
                 correct_predictions += (predicted == labels).sum().item()
                 total_samples += labels.size(0)
 
+                all_labels.extend(labels.cpu().numpy())
+                all_preds.extend(predicted.cpu().numpy())
+
             average_loss = running_loss / total_samples
             accuracy = correct_predictions / total_samples
             self.train_losses.append(average_loss)
             self.train_accuracies.append(accuracy)
+            self.confusion_matrix = confusion_matrix(all_labels, all_preds)
 
             print(f"Epoch {epoch + 1}/{self.epochs}, Loss: {average_loss:.4f}, Accuracy: {accuracy:.4f}")
+            #print(f'    Confusion Matrix:\n{self.confusion_matrix}')
+
+        if self.plot:
+            confusion_matrix_plot(self.confusion_matrix, self.labels)
 
     def predict(self, X=None, batch_size=32):
         self.eval()
